@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investhaus | Strategic Resource Ledger (Institutional)</title>
+    <!-- React & Babel CDNs -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #020202;
+            margin: 0;
+            padding: 0;
+            color: #d4d4d8;
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c5a05922; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c5a05944; }
+
+        .scanline {
+            background: linear-gradient(to bottom, transparent, #c5a05910 50%, transparent);
+            background-size: 100% 4px;
+            animation: scan 10s linear infinite;
+        }
+        @keyframes scan { from { background-position: 0 0; } to { background-position: 0 100%; } }
+        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse-slow { animation: pulse 3s infinite; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const App = () => {
+          const [expandedId, setExpandedId] = useState(null);
+
+          const geoData = [
+            { id: "01", country: "Greenland", city: "Qaqortoq", minerals: "HREOs (Dysprosium, Terbium)", useCase: "GPU Magnets & Robotics (The Body)", tickers: "CRML, AMRQ", military: "Hard Way Doctrine: US Secession Payouts authorized; Military logistics insurance active.", catalyst: "Jan 15: Council Vote on mining permits; Donroe Doctrine volatility.", timeline: "Jan 15: Vote; May: Pilot Plant Start", analysis: "Isotope isolation bottleneck found.", tradeIdea: "Long CRML Straddle May $15", mag7: "TSLA: Optimus Actuators dependency.", risk: "9/10", resource: "Dysprosium" },
+            { id: "02", country: "Venezuela", city: "Caracas", minerals: "Natural Gas & Heavy Crude", useCase: "Energy Floor (The Fuel)", tickers: "SLB, HAL, CVX, XOM", military: "Operation Absolute Resolve: US Southern Command securing PdVSA assets.", catalyst: "Treasury auctions for energy rehabilitation; sub-sea data center hybrids.", timeline: "Jan 20: Rehab Contracts Awarded", analysis: "Infrastructure decay > expected.", tradeIdea: "Overweight SLB Jan '27 LEAPs", mag7: "MSFT: Energy floor for AI clusters.", risk: "7/10", resource: "Natural Gas" },
+            { id: "03", country: "Taiwan", city: "Hsinchu", minerals: "2nm Semiconductors", useCase: "Species Brain (Neural Logic)", tickers: "TSM, NVDA, ASML", military: "Shield of Silicon: WWII Airfield revival (Guam) to protect 2nm production lines.", catalyst: "TSM Watch Week: Military protection ensures deployment is 'When, not If'.", timeline: "Jan 15: Guidance; Q2: 2nm Volume", analysis: "90% species logic dependency.", tradeIdea: "Long TSM / Hedge with SOXS", mag7: "NVDA: 90% logic dependency.", risk: "8/10", resource: "2nm Silicon" },
+            { id: "04", country: "USA (UT)", city: "White Mesa", minerals: "Uranium & Rare Earths", useCase: "Nuclear Baseload Hub (Fortress Node)", tickers: "UUUU, CCJ", military: "National Defense Asset: White Mesa Mill reclassified as Strategic Reserve.", catalyst: "Fast-track domestic processing for REE and Uranium independence.", timeline: "Jan 12: Production ramp start", analysis: "Bottleneck node for domestic processing.", tradeIdea: "Long UUUU for domestic floor", mag7: "GOOGL: Nuclear AI power grid pivot.", risk: "3/10", resource: "Uranium" },
+            { id: "05", country: "USA (CA/NV)", city: "Salton Sea / Thacker Pass", minerals: "Lithium Brine & Clay", useCase: "Domestic Battery Floor", tickers: "ALB, LAC, BHE", military: "DPA Title III: Federal Security Zones established for mineral independence.", catalyst: "DOE Grant Release ($2.2B); US Gov taking strategic equity stakes.", timeline: "Q3 2026: Extraction commencement", analysis: "Price floor discovery at $13k.", tradeIdea: "Accumulate ALB at structural lows", mag7: "AMZN: Humanoid robot warehouse grid.", risk: "4/10", resource: "Lithium" },
+            { id: "06", country: "Australia", city: "Perth", minerals: "NdPr (Magnets)", useCase: "Robotic Dexterity (The Body)", tickers: "LYC, ASM.AX", military: "AUKUS Pillar II: Mineral security protocols for Indo-Pacific lanes.", catalyst: "High-Tech Export MOU; tracking US defense spend correlation.", timeline: "Feb: First alloy shipment", analysis: "Strategic decoupling from CN hubs.", tradeIdea: "Long ASM.AX for mid-stream exposure", mag7: "META: AR Glass sensor scaling.", risk: "3/10", resource: "Neodymium" },
+            { id: "07", country: "Nigeria", city: "Kinshasa Corridor", minerals: "Cobalt & High-Grade Copper", useCase: "Aerospace AI Alloys", tickers: "GLNCY, CMOC", military: "SOCOM Advisors securing ethical 'Clean Cobalt' lanes; bypassing China.", catalyst: "Global Conflict-Free deadline; US Treasury strategic buy program.", timeline: "Jan 1: Compliance active", analysis: "Ethical alpha premium rising.", tradeIdea: "Long GLNCY for volume dominance", mag7: "AAPL: Ethical hardware sourcing.", risk: "10/10", resource: "Cobalt" },
+            { id: "08", country: "Chile", city: "Atacama", minerals: "LFP Lithium", useCase: "Mass autonomous transport", tickers: "SQM, ALB", military: "Port Protection Pact: US Navy export channel security for battery floor.", catalyst: "Nationalization FUD cleared; 30-year lease for SQM finalized.", timeline: "Jan 5: Lease Sign; Feb: Ramp", analysis: "Lowest cost global producer.", tradeIdea: "Long SQM / Short $45 Puts", mag7: "TSLA: Model 2 $25k floor.", risk: "5/10", resource: "LFP Lithium" },
+            { id: "09", country: "Kazakhstan", city: "Almaty", resource: "U3O8 Uranium", useCase: "Data Center Baseload", tickers: "KAP.L, CCJ", military: "Steppe Guard Protocol: Bypassing Russian rail for Western export.", catalyst: "Kazatomprom shortfall; spot price >$120 crossing major resistance.", timeline: "Jan 18: Strategic Purchase", analysis: "Utility panic-buy mode active.", tradeIdea: "Long CCJ Jan '27 LEAPs", mag7: "GOOGL: SMR Data Center logic.", risk: "8/10", resource: "U3O8 Uranium" },
+            { id: "10", country: "Brazil", city: "Araxa", minerals: "Niobium", useCase: "Hypersonic Superconductors", tickers: "VALE", military: "Mercosur Shield: US ISR drone protection for monopoly assets.", catalyst: "Hypersonic alloy breakthrough using Niobium-Steel composites.", timeline: "Jan 12: Defense MOU", analysis: "90% Global Monopoly asset.", tradeIdea: "Long VALE for logistics floor", mag7: "AAPL: Thermal hardware focus.", risk: "3/10", resource: "Niobium" },
+            { id: "11", country: "Indonesia", city: "Sulawesi", minerals: "Class 1 Nickel", useCase: "NCA Cathodes", tickers: "NIC.AX, VALE", military: "Garuda Shield: Joint maritime drills protecting nickel refineries.", catalyst: "IRA status granted by US Commerce; Decoupling Tax Holiday active.", timeline: "Feb: Tesla Site visit", analysis: "JV control shifting to West.", tradeIdea: "Long NIC.AX for HPAL output", mag7: "TSLA: Cybertruck scaling factor.", risk: "6/10", resource: "Nickel" },
+            { id: "12", country: "Canada", city: "Sudbury", minerals: "Nickel & Copper", useCase: "Fortress Resilience Node", tickers: "TECK, FM.TO", military: "NORAD Nexus: Integrated defense of mineral logistics.", catalyst: "Legislative bypass on environmental delays for 'Criticality' assets.", timeline: "Q2: Sudbury Permits", analysis: "Safe-haven mineral bond play.", tradeIdea: "Long TECK for stability", mag7: "MSFT: 100% ESG-compliant grid.", risk: "2/10", resource: "Copper" },
+            { id: "13", country: "Peru", city: "Cusco", minerals: "High-Grade Copper", useCase: "AI Grid Electrification", tickers: "FCX, BHP", military: "Andean Corridor: Police/Military guard for export lane security.", catalyst: "New 'Peace Mining' law removing regional blockade rights.", timeline: "Jan 25: Port clearing", analysis: "Copper is the primary fuel for AI power.", tradeIdea: "Long FCX for high leverage", mag7: "META: Infrastructure build-out.", risk: "7/10", resource: "Refined Copper" },
+            { id: "14", country: "Vietnam", city: "Bac Giang", minerals: "Praseodymium", useCase: "AR Glass Optics", tickers: "AAPL (Chain)", military: "Maritime tech transfer to VN Coast Guard for REE protection.", catalyst: "National REE Auction seeking Western mining consortiums.", timeline: "Jan 21: Bids due", analysis: "Ultimate China+1 node.", tradeIdea: "Long AAPL for supply safety", mag7: "AAPL/META: Ray-Ban optics scaling.", risk: "6/10", resource: "Praseodymium" },
+            { id: "15", country: "Saudi Arabia", city: "Riyadh", minerals: "Refined Mineral Floor", useCase: "Global Mid-stream Hub", tickers: "2110.SR, SLB", military: "CENTCOM Hub: THAAD protection for refinery/processing clusters.", catalyst: "$10B Strategic African Mining fund launch with US JVs.", timeline: "Jan 15: Fund launch", analysis: "Wealth pivoting to mineral control.", tradeIdea: "Overweight Ma'aden on Tadawul", mag7: "GOOGL: Sovereign Riyadh AI Hub.", risk: "5/10", resource: "Processing Hub" },
+            { id: "16", country: "India", city: "Kashmir", minerals: "Lithium & REEs", useCase: "Robot Exports", tickers: "RELIANCE.NS", military: "QUAD Alliance: Sub-surface scanning tech transfer from US.", catalyst: "Kashmir Lithium Auction (5.9M Tonnes); Reliance dominant bid.", timeline: "Q1: Auction close", analysis: "Largest un-tapped lithium basin.", tradeIdea: "Long RELIANCE for AWS stability", mag7: "AMZN: AWS India grid stability.", risk: "7/10", resource: "Lithium" }
+          ];
+
+          useEffect(() => {
+            if (window.lucide) { window.lucide.createIcons(); }
+          }, [expandedId]);
+
+          const toggleExpand = (id) => {
+            setExpandedId(expandedId === id ? null : id);
+          };
+
+          return (
+            <div className="min-h-screen bg-[#020202] relative overflow-x-hidden">
+              <div className="scanline fixed inset-0 pointer-events-none z-10 opacity-[0.03]" />
+              
+              <div className="max-w-[1200px] mx-auto p-12 space-y-12 relative z-20">
+                
+                {/* BRAND HEADER */}
+                <header className="flex flex-col xl:flex-row justify-between items-center gap-8 border-b border-zinc-900 pb-12">
+                  <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 bg-[#c5a059] flex items-center justify-center rounded-2xl text-black font-black italic shadow-[0_0_30px_rgba(197,160,89,0.3)] text-3xl">IH</div>
+                    <div>
+                      <h1 className="text-4xl font-black italic text-white uppercase tracking-tighter leading-none">Investhaus</h1>
+                      <p className="text-sm text-[#c5a059] font-mono tracking-[0.4em] uppercase mt-2 font-bold italic">Strategic Resource Ledger // Session 2026.01</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-12 text-right">
+                    <div>
+                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest leading-none">NY Session Status</p>
+                        <p className="text-green-500 text-lg font-black uppercase mt-1 flex items-center justify-end gap-2 italic">
+                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Live Feed Active
+                        </p>
+                    </div>
+                  </div>
+                </header>
+
+                {/* INVESTHAUS EXECUTIVE BRIEF (MIRRORS MOBILE EXACTLY) */}
+                <section className="p-8 bg-[#080808] border border-zinc-800 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-12 opacity-5">
+                        <i data-lucide="shield-alert" className="w-48 h-48 text-[#c5a059]"></i>
+                    </div>
+                    <div className="flex items-center gap-4 mb-10">
+                        <i data-lucide="shield-alert" className="w-6 h-6 text-[#c5a059]"></i>
+                        <h2 className="text-[14px] font-black uppercase text-white tracking-[0.4em] italic">The Investhaus Read</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 italic text-zinc-400 leading-relaxed text-lg font-medium relative z-10">
+                        <p className="border-l-4 border-[#c5a059] pl-8 py-2">
+                            "Donald Trump’s plan for natural resources isn’t about policy; it’s about <strong className="text-white font-black uppercase">HARD PHYSICS.</strong> The AI revolution is hitting a physical wall. We’ve mapped the 16 strategic nodes where global growth meets hard-earth reality. If you aren't watching the 'Displacement' in these zones, you’re trading noise."
+                        </p>
+                        <p className="border-l-4 border-zinc-700 pl-8 py-2">
+                            "If China controls the magnets and Taiwan is vulnerable, the U.S. AI lead is a <strong className="text-zinc-200 font-black uppercase">'house of cards.'</strong> The goal is to move the <strong className="text-white font-black underline">'brain' (Taiwan)</strong> and the <strong className="text-white font-black underline">'body' (Greenland/Venezuela/Nigeria minerals)</strong> under a single U.S. security umbrella."
+                        </p>
+                    </div>
+
+                    <div className="mt-10 pt-10 border-t border-zinc-900 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <a 
+                            href="https://www.threads.com/@moriahosley/post/DTYF1KTEaxe?xmt=AQF0aZ4Qmxz3KiuGUsx8sOVnNBgQ7u2PYUGl87g1SEuuxQ" 
+                            target="_blank" 
+                            className="flex items-center justify-between p-6 bg-zinc-900/50 border border-[#c5a059]/20 rounded-2xl hover:border-[#c5a059]/50 transition-all group/link w-full md:w-auto min-w-[400px]"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                                    <i data-lucide="link" className="w-6 h-6"></i>
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-xs font-black uppercase tracking-widest text-white">Full Intelligence Briefing Access</p>
+                                    <p className="text-[10px] font-mono text-zinc-500 uppercase mt-0.5">Threads.com/@moriahosley</p>
+                                </div>
+                            </div>
+                            <i data-lucide="arrow-up-right" className="w-5 h-5 text-[#c5a059] group-hover/link:translate-x-1 transition-all"></i>
+                        </a>
+                        <div className="flex flex-wrap gap-2">
+                            {["$TSLA", "$TSM", "$UUUU", "$NVDA", "$MSFT"].map(t => (
+                                <span key={t} className="text-[10px] font-black text-[#c5a059] bg-black px-4 py-2 rounded-full border border-zinc-800 whitespace-nowrap italic uppercase shadow-md">{t}</span>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* STRATEGIC LEDGER (NO SEARCH - CARD LIST) */}
+                <section className="space-y-6">
+                  <div className="flex justify-between items-center px-4 mb-4">
+                    <p className="text-[12px] font-black text-zinc-600 uppercase tracking-[0.4em] flex items-center gap-3 italic">
+                      <i data-lucide="database" className="w-4 h-4"/> 16 Strategic Nodes // Mapped Archives
+                    </p>
+                    <p className="text-[10px] font-black text-zinc-700 uppercase tracking-widest font-mono italic">Grounded: Thursday Jan 2026 Session</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    {geoData.map((node) => (
+                      <div 
+                        key={node.id} 
+                        className={`border transition-all rounded-[2rem] overflow-hidden ${expandedId === node.id ? 'bg-[#0a0a0a] border-[#c5a059]/50 shadow-[0_0_50px_rgba(197,160,89,0.1)]' : 'bg-[#080808] border-zinc-800 hover:border-zinc-700'}`}
+                      >
+                        {/* Row Header */}
+                        <div 
+                          onClick={() => toggleExpand(node.id)}
+                          className="p-8 flex items-center justify-between cursor-pointer active:bg-zinc-900 transition-colors"
+                        >
+                          <div className="flex items-center gap-8">
+                            <span className="text-xl font-mono font-black text-zinc-800">{node.id}</span>
+                            <div className="flex items-center gap-6">
+                              <i data-lucide="map-pin" className="w-5 h-5 text-zinc-600"></i>
+                              <div>
+                                <h3 className="text-xl font-black text-white uppercase italic tracking-tight">{node.country}</h3>
+                                <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest mt-1 italic">{node.city}</p>
+                              </div>
+                            </div>
+                            <div className="h-8 w-px bg-zinc-800 mx-4 hidden md:block"></div>
+                            <div className="flex items-center gap-3">
+                              <i data-lucide="gem" className="w-4 h-4 text-[#c5a059]/40"></i>
+                              <span className="text-xs font-bold text-zinc-400 uppercase tracking-[0.2em]">{node.resource}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-8">
+                              <div className="text-right hidden sm:block">
+                                <p className="text-[8px] font-black text-zinc-600 uppercase tracking-widest">Asset Codes</p>
+                                <p className="text-sm font-mono font-black text-[#c5a059] uppercase">{node.tickers}</p>
+                              </div>
+                              <span className={`text-xs font-black italic px-4 py-1.5 rounded-full border ${parseInt(node.risk) > 7 ? 'text-red-500 border-red-500/20 bg-red-500/5' : 'text-zinc-600 border-zinc-800 bg-zinc-900/50'}`}>
+                                  Hazard: {node.risk}
+                              </span>
+                              <i data-lucide={expandedId === node.id ? "chevron-up" : "chevron-down"} className={`w-6 h-6 transition-all ${expandedId === node.id ? 'text-[#c5a059]' : 'text-zinc-700'}`}></i>
+                          </div>
+                        </div>
+
+                        {/* Expanded Detail (11-Column Mapping) */}
+                        {expandedId === node.id && (
+                          <div className="p-12 pt-0 border-t border-zinc-900 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-12">
+                              
+                              <div className="space-y-10">
+                                {/* Resource Block (B) */}
+                                <div className="p-6 bg-blue-900/5 border-l-4 border-blue-500 rounded-r-3xl flex items-center gap-6 shadow-inner">
+                                  <i data-lucide="zap" className="w-8 h-8 text-blue-400"></i>
+                                  <div>
+                                      <p className="text-[10px] font-black text-blue-500/60 uppercase tracking-widest font-bold">Resource Target (Col B)</p>
+                                      <p className="text-2xl font-black italic text-white uppercase tracking-tighter">{node.resource || node.minerals}</p>
+                                  </div>
+                                </div>
+
+                                {/* Systematic Use Case (C) */}
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-3 text-zinc-600">
+                                    <i data-lucide="cpu" className="w-4 h-4" />
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] font-bold">Strategic Use Case (Col C)</p>
+                                  </div>
+                                  <p className="text-lg text-zinc-300 italic font-medium leading-relaxed border-l border-zinc-800 pl-6">"{node.useCase}"</p>
+                                </div>
+                              </div>
+
+                              <div className="space-y-10">
+                                {/* Military Operational Doctrine (E) */}
+                                <div className="space-y-4">
+                                  <div className="flex items-center gap-3 text-red-500">
+                                      <i data-lucide="sword" className="w-5 h-5" />
+                                      <p className="text-[10px] font-black uppercase tracking-[0.3em] font-bold">Military Doctrine (Col E)</p>
+                                  </div>
+                                  <div className="p-8 bg-red-950/10 border border-red-900/20 rounded-[2.5rem] italic text-lg text-zinc-200 leading-relaxed font-black shadow-inner border-l-4 border-l-red-500">
+                                      "{node.military}"
+                                  </div>
+                                </div>
+
+                                {/* Catalyst & Timeline (F, G) */}
+                                <div className="grid grid-cols-2 gap-8">
+                                  <div className="space-y-2">
+                                      <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-2 font-bold"><i data-lucide="flame" className="w-4 h-4"/> Catalyst (F)</p>
+                                      <p className="text-sm text-zinc-400 italic font-medium leading-snug">{node.catalyst}</p>
+                                  </div>
+                                  <div className="space-y-2">
+                                      <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-2 font-bold"><i data-lucide="clock" className="w-4 h-4"/> Timeline (G)</p>
+                                      <p className="text-sm text-zinc-400 italic font-black leading-snug">{node.timeline}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="space-y-10">
+                                {/* Trade Idea & Analysis (H, I) */}
+                                <div className="p-8 bg-[#c5a059]/5 border border-[#c5a059]/20 rounded-[3rem] space-y-6 shadow-2xl relative overflow-hidden group/idea">
+                                  <div className="absolute top-0 right-0 p-6 opacity-5 group-hover/idea:scale-110 transition-transform">
+                                    <i data-lucide="trending-up" className="w-24 h-24 text-[#c5a059]"/>
+                                  </div>
+                                  <div className="space-y-3">
+                                      <div className="flex items-center gap-3 text-[#c5a059]">
+                                          <i data-lucide="trending-up" className="w-5 h-5" />
+                                          <p className="text-[11px] font-black uppercase tracking-[0.3em] font-bold">Trade Logic (Col I)</p>
+                                      </div>
+                                      <p className="text-2xl font-black italic text-white uppercase leading-tight tracking-tight">"{node.tradeIdea}"</p>
+                                  </div>
+                                  <div className="pt-6 border-t border-[#c5a059]/10">
+                                      <div className="flex items-center gap-2 text-zinc-500 mb-3">
+                                        <i data-lucide="info" className="w-4 h-4" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest font-bold">Architect Audit (Col H)</p>
+                                      </div>
+                                      <p className="text-sm text-zinc-500 italic leading-relaxed">{node.analysis}</p>
+                                  </div>
+                                </div>
+
+                                {/* Mag 7 Effect (J) */}
+                                <div className="p-6 bg-black border border-zinc-800 rounded-2xl flex items-center gap-6 shadow-inner">
+                                  <div className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                                    <i data-lucide="bar-chart-4" className="w-6 h-6 text-blue-500" />
+                                  </div>
+                                  <div>
+                                      <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest font-bold">Mag 7 systematic effect (Col J)</p>
+                                      <p className="text-lg text-blue-400 font-black italic uppercase tracking-tighter leading-none mt-1">{node.mag7}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                {/* FOOTER */}
+                <footer className="pt-24 border-t border-zinc-900 text-center opacity-20 pointer-events-none font-bold uppercase italic text-[11px] tracking-[1.5em] leading-relaxed w-full">
+                    Investhaus // Legacy Intelligence Vault // Build For Centuries
+                </footer>
+
+              </div>
+            </div>
+          );
+        };
+
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
